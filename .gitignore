@@ -1,5 +1,6 @@
 /.venv
 /data
+venv
 
 # python cache and compiled files
 **.pyc
