@@ -1,7 +1,8 @@
 /.venv
 /data
 venv
-
+/.idea
+.gitignore
 # python cache and compiled files
 **.pyc
 **.pyo
