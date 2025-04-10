@@ -4,10 +4,10 @@ import os
 import einops
 
 from typing import Tuple
-from .dataclasses import SimulationRawData, SimulationData, CoilConfigT
+from .dataclasses import SimulationRawData, SimulationData, CoilConfig
 
 
-class SimulationT:
+class Simulation:
     def __init__(self, 
                  path: str,
                  coil_path: str = "data/antenna/antenna.h5"):
@@ -72,7 +72,7 @@ class SimulationT:
         return field_shift
 
 
-    def phase_shift(self, coil_config: CoilConfigT) -> SimulationData:
+    def phase_shift(self, coil_config: CoilConfig) -> SimulationData:
         field_shifted = self._shift_field(self.simulation_raw_data.field, coil_config.phase, coil_config.amplitude)
         
         simulation_data = SimulationData(
@@ -84,5 +84,5 @@ class SimulationT:
         )
         return simulation_data
     
-    def __call__(self, coil_config: CoilConfigT) -> SimulationData:
+    def __call__(self, coil_config: CoilConfig) -> SimulationData:
         return self.phase_shift(coil_config)

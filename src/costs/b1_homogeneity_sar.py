@@ -5,7 +5,7 @@ from ..data.utils import B1Calculator, SARCalculator
 import torch
 
 
-class B1SARCostT(BaseCost):
+class B1HomogeneitySARCost(BaseCost):
     def __init__(self,
                  weight: float = 100) -> None:
         super().__init__()

@@ -1,4 +1,4 @@
-from ..data.simulation import SimulationT, SimulationData, CoilConfigT
+from ..data.simulation import Simulation, SimulationData, CoilConfig
 from ..costs.base import BaseCost
 from abc import ABC, abstractmethod
 
@@ -12,5 +12,5 @@ class BaseOptimizer(ABC):
         assert self.direction in ["minimize", "maximize"], f"Invalid direction: {self.direction}"
 
     @abstractmethod
-    def optimize(self, simulation: SimulationT) -> CoilConfigT:
+    def optimize(self, simulation: Simulation) -> CoilConfig:
         raise NotImplementedError

@@ -1,10 +1,10 @@
-from .data import SimulationT, CoilConfigT
+from .data import Simulation, CoilConfig
 from .costs.base import BaseCost
 
 from typing import Dict, Any
 
-def evaluate_coil_config(coil_config: CoilConfigT, 
-                         simulation: SimulationT,
+def evaluate_coil_config(coil_config: CoilConfig, 
+                         simulation: Simulation,
                          cost_function: BaseCost) -> Dict[str, Any]:
     """
     Evaluates the coil configuration using the cost function.
@@ -17,7 +17,7 @@ def evaluate_coil_config(coil_config: CoilConfigT,
     Returns:
         A dictionary containing the best coil configuration, cost, and cost improvement.
     """
-    default_coil_config = CoilConfigT() ####
+    default_coil_config = CoilConfig() ####
 
     simulation_data = simulation(coil_config)
     simulation_data_default = simulation(default_coil_config)

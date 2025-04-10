@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import time
 from tqdm import trange
-from ..data.simulation import SimulationT, SimulationData, CoilConfigT
+from ..data.simulation import Simulation, SimulationData, CoilConfig
 from ..costs.base import BaseCost
 from .base import BaseOptimizer
 
@@ -13,7 +13,7 @@ class GDOptimizer(BaseOptimizer):
     def __init__(self,
                  cost_function: BaseCost,
                  optim = torch.optim.SGD,
-                 init_coil_config: CoilConfigT = None,
+                 init_coil_config: CoilConfig = None,
                  max_iter: int = 100,
                  timeout: int = 3*60-10,
                  learning_rate: float = 0.01) -> None:
@@ -36,7 +36,7 @@ class GDOptimizer(BaseOptimizer):
 
         return phase, amplitude
         
-    def optimize(self, simulation: SimulationT, init: CoilConfigT=None):
+    def optimize(self, simulation: Simulation, init: CoilConfig=None):
         """Optimize coil configuration using gradient descent."""
         # Initialize coil configuration with leaf tensors
         start_time = time.time()
@@ -61,7 +61,7 @@ class GDOptimizer(BaseOptimizer):
             optimizer.zero_grad()  # Clear previous gradients
 
             # Create a CoilConfig-like structure using the tensors directly
-            coil_config = CoilConfigT(phase=phase, amplitude=amplitude)
+            coil_config = CoilConfig(phase=phase, amplitude=amplitude)
 
             # Run simulation with the current coil configuration
             simulation_data = simulation(coil_config)
@@ -81,7 +81,7 @@ class GDOptimizer(BaseOptimizer):
             # Check if this is the best configuration
             if cost > best_cost:
                 best_cost = cost
-                best_coil_config = CoilConfigT(phase=phase.detach(), amplitude=amplitude.detach())
+                best_coil_config = CoilConfig(phase=phase.detach(), amplitude=amplitude.detach())
                 pbar.set_postfix_str(f"Best cost {best_cost:.2f}")
 
             elapsed_time = time.time() - start_time

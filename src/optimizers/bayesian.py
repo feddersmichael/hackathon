@@ -1,4 +1,4 @@
-from ..data.simulation import SimulationT, SimulationData, CoilConfigT
+from ..data.simulation import Simulation, SimulationData, CoilConfig
 from ..costs.base import BaseCost
 from .base import BaseOptimizer
 
@@ -30,7 +30,7 @@ class BayesianOptimizerparallel(BaseOptimizer):
         """Evaluate a single candidate solution."""
         phase = torch.tensor(params[:8])
         amplitude = torch.tensor(params[8:])
-        coil_config = CoilConfigT(phase=phase, amplitude=amplitude)
+        coil_config = CoilConfig(phase=phase, amplitude=amplitude)
         simulation_data = self.simulation(coil_config)
         cost = self.cost_function(simulation_data).item()  # Negative for maximization
         if cost > self.best_cost:
@@ -39,7 +39,7 @@ class BayesianOptimizerparallel(BaseOptimizer):
         self.it += 1
         return -cost
 
-    def optimize(self, simulation: SimulationT):
+    def optimize(self, simulation: Simulation):
         """Perform Bayesian Optimization with a time limit."""
         self.simulation = simulation  # Store simulation for use in objective function
         start_time = time.time()
@@ -75,6 +75,6 @@ class BayesianOptimizerparallel(BaseOptimizer):
         best_params = best_x if best_x is not None else result.x
         best_phase = torch.tensor(best_params[:8])
         best_amplitude = torch.tensor(best_params[8:])
-        best_coil_config = CoilConfigT(phase=best_phase, amplitude=best_amplitude)
+        best_coil_config = CoilConfig(phase=best_phase, amplitude=best_amplitude)
         
         return best_coil_config

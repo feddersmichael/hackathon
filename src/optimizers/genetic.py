@@ -4,7 +4,7 @@ from tqdm import trange
 import random
 import time
 
-from ..data.simulation import SimulationT, SimulationData, CoilConfigT
+from ..data.simulation import Simulation, SimulationData, CoilConfig
 from ..costs.base import BaseCost
 from .base import BaseOptimizer
 from concurrent.futures import ThreadPoolExecutor
@@ -22,15 +22,15 @@ class GeneticOptimizer(BaseOptimizer):
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
 
-    def _initialize_population(self) -> List[CoilConfigT]:
+    def _initialize_population(self) -> List[CoilConfig]:
         return [self._sample_coil_config() for _ in range(self.population_size)]
 
-    def _sample_coil_config(self) -> CoilConfigT:
+    def _sample_coil_config(self) -> CoilConfig:
         phase = torch.rand(8) * (2 * torch.pi)
         amplitude = torch.rand(8)
-        return CoilConfigT(phase=phase, amplitude=amplitude)
+        return CoilConfig(phase=phase, amplitude=amplitude)
 
-    def _evaluate_population(self, simulation: SimulationT, population: List[CoilConfigT]):
+    def _evaluate_population(self, simulation: Simulation, population: List[CoilConfig]):
         def evaluate(coil):
             return coil, self.cost_function(simulation(coil))
 
@@ -39,19 +39,19 @@ class GeneticOptimizer(BaseOptimizer):
         return results
 
 
-    def _select_parents(self, evaluated_population: List[tuple]) -> List[CoilConfigT]:
+    def _select_parents(self, evaluated_population: List[tuple]) -> List[CoilConfig]:
         evaluated_population.sort(key=lambda x: x[1], reverse=True)
         return [pair[0] for pair in evaluated_population[:self.population_size // 2]]
 
-    def _crossover(self, parent1: CoilConfigT, parent2: CoilConfigT) -> CoilConfigT:
+    def _crossover(self, parent1: CoilConfig, parent2: CoilConfig) -> CoilConfig:
         if torch.rand(1).item() > self.crossover_rate:
             return parent1
         mask = torch.rand(8) < 0.5
         child_phase = torch.where(mask, parent1.phase, parent2.phase)
         child_amplitude = torch.where(mask, parent1.amplitude, parent2.amplitude)
-        return CoilConfigT(phase=child_phase, amplitude=child_amplitude)
+        return CoilConfig(phase=child_phase, amplitude=child_amplitude)
 
-    def _mutate(self, coil: CoilConfigT) -> CoilConfigT:
+    def _mutate(self, coil: CoilConfig) -> CoilConfig:
         if torch.rand(1).item() < self.mutation_rate:
             coil.phase += torch.normal(mean=0, std=0.01, size=coil.phase.shape)
             coil.phase = coil.phase % (2 * torch.pi)
@@ -60,7 +60,7 @@ class GeneticOptimizer(BaseOptimizer):
             coil.amplitude = torch.clamp(coil.amplitude, 0, 1)
         return coil
 
-    def optimize(self, simulation: SimulationT):
+    def optimize(self, simulation: Simulation):
         start_time = time.time()
         population = self._initialize_population()
         pbar = trange(self.generations)
