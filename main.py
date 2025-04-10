@@ -26,8 +26,8 @@ def run(simulation: Simulation,
     simulation.simulation_raw_data.properties = simulation.simulation_raw_data.properties[:,min_indices[0]:max_indices[0], min_indices[1]:max_indices[1], min_indices[2]:max_indices[2]]
     
     #optimizer_bay = BayesianOptimizerparallel(cost_function=cost_function, max_iter=5000, timeout=2*60)
-    optimizer_gra = GDOptimizer(cost_function=cost_function, max_iter=5000, optim=torch.optim.Adam, learning_rate=0.02, timeout=3*60-10)
-    optimizer_gen = GeneticOptimizer(cost_function=cost_function, population_size=20, generations=5000, mutation_rate=0.5, crossover_rate=0.6, timeout=2*60)
+    optimizer_gra = GDOptimizer(cost_function=cost_function, max_iter=10000, optim=torch.optim.Adam, learning_rate=0.02, timeout=3*60-10)
+    optimizer_gen = GeneticOptimizer(cost_function=cost_function, population_size=20, generations=10000, mutation_rate=0.5, crossover_rate=0.6, timeout=2*60)
     
     best_coil_config = optimizer_gen.optimize(simulation)
     best_coil_config = optimizer_gra.optimize(simulation, best_coil_config)

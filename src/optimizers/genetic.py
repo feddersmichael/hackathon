@@ -64,18 +64,22 @@ class GeneticOptimizer(BaseOptimizer):
         start_time = time.time()
         population = self._initialize_population()
         pbar = trange(self.generations)
+        best_cost = -torch.inf
+        best_param = None
         for _ in pbar:
             evaluated_population = self._evaluate_population(simulation, population)
             parents = self._select_parents(evaluated_population)
             offspring = [self._crossover(random.choice(parents), random.choice(parents)) for _ in range(self.population_size - len(parents))]
             population = parents + offspring
             population = [self._mutate(coil) for coil in population]
-            best_cost = max(evaluated_population, key=lambda x: x[1])[1]
+            max_cost = max(evaluated_population, key=lambda x: x[1])[1]
+            if max_cost > best_cost:
+                best_param = max(evaluated_population, key=lambda x: x[1])[0]
+                best_cost = max_cost
             pbar.set_postfix_str(f"Best cost {best_cost:.2f}")
             elapsed_time = time.time() - start_time
             if elapsed_time >= self.timeout:
                 print(f"⏳ Timeout reached ({self.timeout} sec). Stopping optimization.")
                 break
 
-        best_solution = max(evaluated_population, key=lambda x: x[1])
-        return best_solution[0]
+        return best_param
