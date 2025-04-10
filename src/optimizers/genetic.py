@@ -13,7 +13,7 @@ class GeneticOptimizer(BaseOptimizer):
     """
     GeneticOptimizer uses a genetic algorithm to optimize coil configurations.
     """
-    def __init__(self, cost_function: BaseCost, timeout: int = 2*60, population_size: int = 100, generations: int = 50,
+    def __init__(self, cost_function: BaseCost, timeout: int = 2*60, population_size: int = 300, generations: int = 50,
                  mutation_rate: float = 0.1, crossover_rate: float = 0.7) -> None:
         super().__init__(cost_function)
         self.timeout = timeout
