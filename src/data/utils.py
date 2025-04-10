@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 from .dataclasses import SimulationData
 
 class B1Calculator:
@@ -28,7 +29,8 @@ class SARCalculator:
 
     def calculate_sar(self, simulation_data: SimulationData) -> np.ndarray:
         e_field = simulation_data.field[0]
-        abs_efield_sq = np.sum(e_field**2, axis=(0,1))
+        #abs_efield_sq = np.sum(e_field**2, axis=(0,1))
+        abs_efield_sq = torch.sum(e_field**2, axis=(0,1))
 
         # get the conductivity and density tensors
         conductivity = simulation_data.properties[0]

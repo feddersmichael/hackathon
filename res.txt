@@ -1,3 +1,0 @@
-00 - baseline - DummyOptimizer 
-01 - bayesian - single core 100its
-02 - bayesian - multi core 200its

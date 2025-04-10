@@ -1,55 +1,13 @@
-from ..data.simulation import Simulation, SimulationData, CoilConfig
+from ..data.simulation import SimulationT, SimulationData, CoilConfigT
 from ..costs.base import BaseCost
 from .base import BaseOptimizer
 
 import numpy as np
+import torch
 import time
 from skopt import gp_minimize
 from skopt.space import Real
 from joblib import Parallel, delayed  # For parallel execution
-
-class BayesianOptimizer(BaseOptimizer):
-    """
-    MyOptimizer using Bayesian Optimization (via Gaussian Process).
-    Instead of random search, it models the cost function and suggests better candidates iteratively.
-    """
-    def __init__(self, cost_function: BaseCost, max_iter: int = 100) -> None:
-        super().__init__(cost_function)
-        self.max_iter = max_iter
-
-        # Define the search space: 8 phase values (0 to 2π) and 8 amplitude values (0 to 1)
-        self.search_space = [Real(0, 2 * np.pi, name=f"phase_{i}") for i in range(8)] + \
-                            [Real(0, 1, name=f"amplitude_{i}") for i in range(8)]
-        
-    def _objective_function(self, params):
-        """Wraps simulation and cost evaluation for Bayesian optimization."""
-        # Extract phases and amplitudes
-        phase = np.array(params[:8])
-        amplitude = np.array(params[8:])
-        
-        # Create coil configuration
-        coil_config = CoilConfig(phase=phase, amplitude=amplitude)
-        
-        # Run simulation
-        simulation_data = self.simulation(coil_config)
-        
-        # Compute cost
-        return -self.cost_function(simulation_data)
-        
-    def optimize(self, simulation: Simulation):
-        """Optimize coil configuration using Bayesian Optimization."""
-        self.simulation = simulation  # Store simulation for use in objective function
-
-        # Perform Bayesian Optimization
-        result = gp_minimize(self._objective_function, self.search_space, n_calls=self.max_iter, random_state=42)
-        
-        # Extract best coil configuration
-        best_params = result.x
-        best_phase = np.array(best_params[:8])
-        best_amplitude = np.array(best_params[8:])
-        best_coil_config = CoilConfig(phase=best_phase, amplitude=best_amplitude)
-        
-        return best_coil_config
 
 
 class BayesianOptimizerparallel(BaseOptimizer):
@@ -61,6 +19,8 @@ class BayesianOptimizerparallel(BaseOptimizer):
         self.max_iter = max_iter
         self.num_workers = num_workers  # Number of parallel workers
         self.timeout = timeout  # Timeout in seconds
+        self.best_cost = -torch.inf
+        self.it = 0
 
         # Define the search space: 8 phase values (0 to 2π) and 8 amplitude values (0 to 1)
         self.search_space = [Real(0, 2 * np.pi, name=f"phase_{i}") for i in range(8)] + \
@@ -68,36 +28,18 @@ class BayesianOptimizerparallel(BaseOptimizer):
     
     def _evaluate_single(self, params):
         """Evaluate a single candidate solution."""
-        phase = np.array(params[:8])
-        amplitude = np.array(params[8:])
-        coil_config = CoilConfig(phase=phase, amplitude=amplitude)
+        phase = torch.tensor(params[:8])
+        amplitude = torch.tensor(params[8:])
+        coil_config = CoilConfigT(phase=phase, amplitude=amplitude)
         simulation_data = self.simulation(coil_config)
-        return -self.cost_function(simulation_data)  # Negative for maximization
-    
-    # def optimize(self, simulation: Simulation):
-    #     """Perform Bayesian Optimization with parallelized evaluations."""
-    #     self.simulation = simulation  # Store simulation for use in objective function
+        cost = self.cost_function(simulation_data).item()  # Negative for maximization
+        if cost > self.best_cost:
+            self.best_cost = cost
+        print(f"{self.it} - Cost: {cost:.2f}, Best: {self.best_cost:.2f}")
+        self.it += 1
+        return -cost
 
-    #     # Run Bayesian optimization
-    #     result = gp_minimize(
-    #         self._evaluate_single,  # No batch processing needed
-    #         self.search_space,
-    #         n_calls=self.max_iter,
-    #         n_restarts_optimizer=40,
-    #         acq_optimizer='lbfgs',
-    #         n_jobs=self.num_workers,  # Parallel execution
-    #         random_state=42
-    #     )
-        
-    #     # Extract best coil configuration
-    #     best_params = result.x
-    #     best_phase = np.array(best_params[:8])
-    #     best_amplitude = np.array(best_params[8:])
-    #     best_coil_config = CoilConfig(phase=best_phase, amplitude=best_amplitude)
-        
-    #     return best_coil_config
-
-    def optimize(self, simulation: Simulation):
+    def optimize(self, simulation: SimulationT):
         """Perform Bayesian Optimization with a time limit."""
         self.simulation = simulation  # Store simulation for use in objective function
         start_time = time.time()
@@ -125,14 +67,14 @@ class BayesianOptimizerparallel(BaseOptimizer):
             self.search_space,
             n_calls=self.max_iter,
             n_jobs=self.num_workers,  # Parallel execution
-            random_state=None,
+            random_state=38,
             callback=_callback  # Callback to check for timeout
         )
         
         # If optimization stopped early, return the best found so far
         best_params = best_x if best_x is not None else result.x
-        best_phase = np.array(best_params[:8])
-        best_amplitude = np.array(best_params[8:])
-        best_coil_config = CoilConfig(phase=best_phase, amplitude=best_amplitude)
+        best_phase = torch.tensor(best_params[:8])
+        best_amplitude = torch.tensor(best_params[8:])
+        best_coil_config = CoilConfigT(phase=best_phase, amplitude=best_amplitude)
         
         return best_coil_config

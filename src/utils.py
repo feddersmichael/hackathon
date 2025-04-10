@@ -1,10 +1,10 @@
-from .data import CoilConfig, Simulation
+from .data import SimulationT, CoilConfigT
 from .costs.base import BaseCost
 
 from typing import Dict, Any
 
-def evaluate_coil_config(coil_config: CoilConfig, 
-                         simulation: Simulation,
+def evaluate_coil_config(coil_config: CoilConfigT, 
+                         simulation: SimulationT,
                          cost_function: BaseCost) -> Dict[str, Any]:
     """
     Evaluates the coil configuration using the cost function.
@@ -17,7 +17,7 @@ def evaluate_coil_config(coil_config: CoilConfig,
     Returns:
         A dictionary containing the best coil configuration, cost, and cost improvement.
     """
-    default_coil_config = CoilConfig()
+    default_coil_config = CoilConfigT() ####
 
     simulation_data = simulation(coil_config)
     simulation_data_default = simulation(default_coil_config)
@@ -27,19 +27,19 @@ def evaluate_coil_config(coil_config: CoilConfig,
     best_coil_config_cost = cost_function(simulation_data)
 
     # Calculate cost improvement
-    cost_improvement_absolute = (default_coil_config_cost - best_coil_config_cost)
+    cost_improvement_absolute = (best_coil_config_cost - default_coil_config_cost)
     cost_improvement_relative = (best_coil_config_cost - default_coil_config_cost) / default_coil_config_cost
 
     # Create a dictionary to store the results
     result = {
-        "best_coil_phase": list(coil_config.phase),
-        "best_coil_amplitude": list(coil_config.amplitude),
-        "best_coil_config_cost": best_coil_config_cost,
-        "default_coil_config_cost": default_coil_config_cost,
-        "cost_improvement_absolute": cost_improvement_absolute,
-        "cost_improvement_relative": cost_improvement_relative,
-        "cost_function_name": cost_function.__class__.__name__,
-        "cost_function_direction": cost_function.direction,
-        "simulation_data": simulation_data.simulation_name,
+        "best_coil_phase":              list(coil_config.phase.numpy().tolist()),
+        "best_coil_amplitude":          list(coil_config.amplitude.numpy().tolist()),
+        "best_coil_config_cost":        float(best_coil_config_cost),
+        "default_coil_config_cost":     float(default_coil_config_cost),
+        "cost_improvement_absolute":    float(cost_improvement_absolute),
+        "cost_improvement_relative":    float(cost_improvement_relative),
+        "cost_function_name":           cost_function.__class__.__name__,
+        "cost_function_direction":      cost_function.direction,
+        "simulation_data":              simulation_data.simulation_name,
     }
     return result

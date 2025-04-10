@@ -1,16 +1,13 @@
-
-import numpy.typing as npt
-import numpy as np
+import torch
 import h5py
 import os
 import einops
 
 from typing import Tuple
-from .dataclasses import SimulationRawData, SimulationData, CoilConfig
+from .dataclasses import SimulationRawData, SimulationData, CoilConfigT
 
 
-
-class Simulation:
+class SimulationT:
     def __init__(self, 
                  path: str,
                  coil_path: str = "data/antenna/antenna.h5"):
@@ -22,27 +19,28 @@ class Simulation:
     def _load_raw_simulation_data(self) -> SimulationRawData:
         # Load raw simulation data from path
         
-        def read_field() -> Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32]]:
+        def read_field() -> Tuple[torch.Tensor, torch.Tensor]:
             with h5py.File(self.path) as f:
-                re_efield, im_efield = f["efield"]["re"][:], f["efield"]["im"][:]
-                re_hfield, im_hfield = f["hfield"]["re"][:], f["hfield"]["im"][:]
-                field = np.stack([np.stack([re_efield, im_efield], axis=0), np.stack([re_hfield, im_hfield], axis=0)], axis=0)
+                re_efield, im_efield = torch.tensor(f["efield"]["re"][:], dtype=torch.float32), torch.tensor(f["efield"]["im"][:], dtype=torch.float32)
+                re_hfield, im_hfield = torch.tensor(f["hfield"]["re"][:], dtype=torch.float32), torch.tensor(f["hfield"]["im"][:], dtype=torch.float32)
+                
+                field = torch.stack([torch.stack([re_efield, im_efield], dim=0), torch.stack([re_hfield, im_hfield], dim=0)], dim=0)
             return field
 
-        def read_physical_properties() -> npt.NDArray[np.float32]:
+        def read_physical_properties() -> torch.Tensor:
             with h5py.File(self.path) as f:
-                physical_properties = f["input"][:]
+                physical_properties = torch.tensor(f["input"][:], dtype=torch.float32)
             return physical_properties
         
-        def read_subject_mask() -> npt.NDArray[np.bool_]:
+        def read_subject_mask() -> torch.Tensor:
             with h5py.File(self.path) as f:
-                subject = f["subject"][:]
-            subject = np.max(subject, axis=-1)
+                subject = torch.tensor(f["subject"][:], dtype=torch.bool)
+            subject = torch.max(subject, dim=-1).values
             return subject
         
-        def read_coil_mask() -> npt.NDArray[np.float32]:
+        def read_coil_mask() -> torch.Tensor:
             with h5py.File(self.coil_path) as f:
-                coil = f["masks"][:]
+                coil = torch.tensor(f["masks"][:], dtype=torch.float32)
             return coil
         
         def read_simulation_name() -> str:
@@ -58,24 +56,23 @@ class Simulation:
         
         return simulation_raw_data
     
-    def _shift_field(self, 
-                     field: npt.NDArray[np.float32], 
-                     phase: npt.NDArray[np.float32], 
-                     amplitude: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
+    def _shift_field(self, field: torch.Tensor, phase: torch.Tensor, amplitude: torch.Tensor) -> torch.Tensor:
         """
         Shift the field calculating field_shifted = field * amplitude (e ^ (phase * 1j)) and summing over all coils.
         """
-        re_phase = np.cos(phase) * amplitude
-        im_phase = np.sin(phase) * amplitude
-        coeffs_real = np.stack((re_phase, -im_phase), axis=0)
-        coeffs_im = np.stack((im_phase, re_phase), axis=0)
-        coeffs = np.stack((coeffs_real, coeffs_im), axis=0)
-        coeffs = einops.repeat(coeffs, 'reimout reim coils -> hf reimout reim coils', hf=2)
+        dtype = field.dtype  # Ensure consistency with field's dtype
+        re_phase = torch.cos(phase).to(dtype) * amplitude.to(dtype)
+        im_phase = torch.sin(phase).to(dtype) * amplitude.to(dtype)
+        coeffs_real = torch.stack((re_phase, -im_phase), dim=0)
+        coeffs_im = torch.stack((im_phase, re_phase), dim=0)
+        coeffs = torch.stack((coeffs_real, coeffs_im), dim=0)
+        coeffs = einops.repeat(coeffs, 'reimout reim coils -> hf reimout reim coils', hf=2).to(dtype)
+
         field_shift = einops.einsum(field, coeffs, 'hf reim fieldxyz ... coils, hf reimout reim coils -> hf reimout fieldxyz ...')
         return field_shift
 
-    def phase_shift(self, coil_config: CoilConfig) -> SimulationData:
-        
+
+    def phase_shift(self, coil_config: CoilConfigT) -> SimulationData:
         field_shifted = self._shift_field(self.simulation_raw_data.field, coil_config.phase, coil_config.amplitude)
         
         simulation_data = SimulationData(
@@ -87,5 +84,5 @@ class Simulation:
         )
         return simulation_data
     
-    def __call__(self, coil_config: CoilConfig) -> SimulationData:
+    def __call__(self, coil_config: CoilConfigT) -> SimulationData:
         return self.phase_shift(coil_config)
