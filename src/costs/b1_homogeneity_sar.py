@@ -19,12 +19,12 @@ class B1HomogeneitySARCost(BaseCost):
         sar = self.sar_calculator(simulation_data)
         
         #subject = simulation_data.subject
-        
+
         b1_field_abs = torch.abs(b1_field)
         b1_field_subject_voxels = b1_field_abs #[subject]
-        
+
         sar_subject_voxels = sar #[subject]
-        
+
         one_over_cov = torch.mean(b1_field_subject_voxels)/torch.std(b1_field_subject_voxels)
         peak_sar = torch.max(sar_subject_voxels)
         peak_sar_sqrt = torch.sqrt(peak_sar)
