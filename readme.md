@@ -5,7 +5,7 @@ Welcome to the Hackathon accompanying the 2025 Spring School on *Physics Informe
 This repo will serve you as a starting point for solving the task described below.
 
 ## Getting Started
-To setup the environment, fork this repository (or create a new one using this repository as a template) and clone the repository.
+To set up the environment, fork this repository (or create a new one using this repository as a template) and clone the repository.
 
 In the new repository create a new environment and install all requirements by running the following commands:
 ```
@@ -19,8 +19,8 @@ You are given a complex 3D object sitting inside an array of 8 dipoles, position
 
  
 <p float="left">
-  <img src="figures/blobs_side.png" width="49%" />
-  <img src="figures/blobs_top.png" width="49%" /> 
+  <img src="figures/blobs_side.png" width="683"  alt=""/>
+  <img src="figures/blobs_top.png" width="683"  alt=""/> 
 </p>
 
 **Figure 1:** Coil and object positions.
@@ -30,7 +30,7 @@ The domain is a simulated MRI environment with electric $E$ and magnetic $H$ fie
 
 Additionally, the object mask and various physical properties (electrical conductivity, magnetic permittivity and density) are also available as seen in Figure 2.
 
-<img src="figures/example_simulation.png" width="100%" />
+<img src="figures/example_simulation.png" width="100%"  alt=""/>
 
 **Figure 2:** Example simulation with physical features and distribution of electric and magnetic fields.
 
@@ -42,7 +42,7 @@ $$
 
 This can significantly change the overall distribution of the fields and in result, the distribution of the SAR and the $B_1^+$ field (which directly corresponds to what the MRI scanner can register). See Figure 3 for an example.
 
-<img src="figures/coil_configs.png" width="100%" />
+<img src="figures/coil_configs.png" width="100%"  alt=""/>
 
 **Figure 2:** Example distribution of Fields, SAR and the $B_1^+$ field for two different coil configurations.
 
@@ -93,7 +93,7 @@ project/
 ## Evaluation
 All teams will be asked to submit their solutions as a git repository. In the git repository the `main.py` should be modified (only) to include the optimization algorithm developed by the team. The `evaluation.py` script should not be changed at all.
 
-Each submission will be evaluated on a previously unseen set of simulations, with both cost functions specified in the task. The optimization algorithm should run within 5 Minutes after which the program execution will timeout and the solution will be disqualified.
+Each submission will be evaluated on a previously unseen set of simulations, with both cost functions specified in the task. The optimization algorithm should run within 5 Minutes after which the program execution will time out and the solution will be disqualified.
 
 For the second cost function a weighting factor of $\lambda = 100$ will be used during evaluation.
  

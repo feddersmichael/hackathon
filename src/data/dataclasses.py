@@ -3,6 +3,7 @@ import numpy.typing as npt
 import numpy as np
 import torch
 
+
 @dataclass
 class CoilConfig:
     """
@@ -22,8 +23,8 @@ class SimulationData:
     Stores the simulation data for a specific coil configuration.
     """
     simulation_name: str
-    properties: npt.NDArray[np.float64]
-    field: npt.NDArray[np.float64]
+    properties: torch.Tensor
+    field: torch.Tensor
     subject: npt.NDArray[np.bool_]
     coil_config: CoilConfig
     
@@ -33,7 +34,7 @@ class SimulationRawData:
     Stores the raw simulation data. Each coil contribution is stored separately along an additional dimension.
     """
     simulation_name: str
-    properties: npt.NDArray[np.float64]
-    field: npt.NDArray[np.float64]
-    subject: npt.NDArray[np.bool_]
-    coil: npt.NDArray[np.float64]
+    properties: torch.Tensor
+    field: torch.Tensor
+    subject: torch.bool
+    coil: torch.Tensor

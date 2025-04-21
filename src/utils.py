@@ -1,5 +1,5 @@
-from .data import Simulation, CoilConfig
-from .costs.base import BaseCost
+from data import Simulation, CoilConfig
+from costs.base import BaseCost
 
 from typing import Dict, Any
 

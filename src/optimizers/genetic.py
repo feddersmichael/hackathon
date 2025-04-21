@@ -9,6 +9,13 @@ from ..costs.base import BaseCost
 from .base import BaseOptimizer
 from concurrent.futures import ThreadPoolExecutor
 
+
+def _sample_coil_config() -> CoilConfig:
+    phase = torch.rand(8) * (2 * torch.pi)
+    amplitude = torch.rand(8)
+    return CoilConfig(phase=phase, amplitude=amplitude)
+
+
 class GeneticOptimizer(BaseOptimizer):
     """
     GeneticOptimizer uses a genetic algorithm to optimize coil configurations.
@@ -23,12 +30,7 @@ class GeneticOptimizer(BaseOptimizer):
         self.crossover_rate = crossover_rate
 
     def _initialize_population(self) -> List[CoilConfig]:
-        return [self._sample_coil_config() for _ in range(self.population_size)]
-
-    def _sample_coil_config(self) -> CoilConfig:
-        phase = torch.rand(8) * (2 * torch.pi)
-        amplitude = torch.rand(8)
-        return CoilConfig(phase=phase, amplitude=amplitude)
+        return [_sample_coil_config() for _ in range(self.population_size)]
 
     def _evaluate_population(self, simulation: Simulation, population: List[CoilConfig]):
         def evaluate(coil):

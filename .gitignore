@@ -1,6 +1,6 @@
 /.venv
-/data
 venv
+/data
 /.idea
 .gitignore
 # python cache and compiled files

@@ -6,6 +6,20 @@ from ..data.simulation import Simulation, SimulationData, CoilConfig
 from ..costs.base import BaseCost
 from .base import BaseOptimizer
 
+
+def _initialize_coil_config():
+    """Initialize the coil configuration as leaf tensors."""
+    # Create independent leaf tensors with requires_grad set to True
+    phase = torch.rand(8, requires_grad=True) * 2 * np.pi  # Phase values between 0 and 2π
+    amplitude = torch.ones(8, requires_grad=True)  # Amplitude values between 0 and 1
+
+    # Ensure they are leaf tensors (clone and detach if necessary)
+    phase = phase.clone().detach().requires_grad_(True)
+    amplitude = amplitude.clone().detach().requires_grad_(True)
+
+    return phase, amplitude
+
+
 class GDOptimizer(BaseOptimizer):
     """
     GDOptimizer is a gradient descent optimizer that minimizes a cost function using PyTorch.
@@ -24,18 +38,6 @@ class GDOptimizer(BaseOptimizer):
         self.optim = optim
         self.init_coil_config = init_coil_config
 
-    def _initialize_coil_config(self):
-        """Initialize the coil configuration as leaf tensors."""
-        # Create independent leaf tensors with requires_grad set to True
-        phase = torch.rand(8, requires_grad=True) * 2 * np.pi  # Phase values between 0 and 2π
-        amplitude = torch.ones(8, requires_grad=True)  # Amplitude values between 0 and 1
-        
-        # Ensure they are leaf tensors (clone and detach if necessary)
-        phase = phase.clone().detach().requires_grad_(True)
-        amplitude = amplitude.clone().detach().requires_grad_(True)
-
-        return phase, amplitude
-        
     def optimize(self, simulation: Simulation, init: CoilConfig=None):
         """Optimize coil configuration using gradient descent."""
         # Initialize coil configuration with leaf tensors
@@ -45,7 +47,7 @@ class GDOptimizer(BaseOptimizer):
             phase = init.phase.clone().detach().requires_grad_(True)
             amplitude = init.amplitude.clone().detach().requires_grad_(True)
         else:
-            phase, amplitude = self._initialize_coil_config()
+            phase, amplitude = _initialize_coil_config()
 
         best_coil_config = None
         last_cost = -torch.inf
@@ -55,9 +57,9 @@ class GDOptimizer(BaseOptimizer):
         optimizer = self.optim([phase, amplitude], lr=self.learning_rate, maximize=True)
 
         pbar = trange(self.max_iter)
-        j = 0
+        # j = 0
 
-        for i in pbar:
+        for _ in pbar:
             optimizer.zero_grad()  # Clear previous gradients
 
             # Create a CoilConfig-like structure using the tensors directly

@@ -16,6 +16,7 @@ class BayesianOptimizerparallel(BaseOptimizer):
     """
     def __init__(self, cost_function: BaseCost, max_iter: int = 100, timeout: int = 5*60-10, num_workers: int = -1) -> None:
         super().__init__(cost_function)
+        self.simulation = None
         self.max_iter = max_iter
         self.num_workers = num_workers  # Number of parallel workers
         self.timeout = timeout  # Timeout in seconds
