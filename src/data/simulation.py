@@ -21,8 +21,9 @@ class Simulation:
         
         def read_field() -> Tuple[torch.Tensor, torch.Tensor]:
             with h5py.File(self.path) as f:
-                re_efield, im_efield = torch.tensor(f["efield"]["re"][:], dtype=torch.float32), torch.tensor(f["efield"]["im"][:], dtype=torch.float32)
-                re_hfield, im_hfield = torch.tensor(f["hfield"]["re"][:], dtype=torch.float32), torch.tensor(f["hfield"]["im"][:], dtype=torch.float32)
+                # oly for B1 cost function
+                re_efield, im_efield = torch.tensor(f["efield"]["re"][0:2, :, :, :, :], dtype=torch.float32), torch.tensor(f["efield"]["im"][0:2, :, :, :, :], dtype=torch.float32)
+                re_hfield, im_hfield = torch.tensor(f["hfield"]["re"][0:2, :, :, :, :], dtype=torch.float32), torch.tensor(f["hfield"]["im"][0:2, :, :, :, :], dtype=torch.float32)
                 
                 field = torch.stack([torch.stack([re_efield, im_efield], dim=0), torch.stack([re_hfield, im_hfield], dim=0)], dim=0)
             return field

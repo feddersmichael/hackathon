@@ -3,7 +3,7 @@ from ..costs.base import BaseCost
 from .base import BaseOptimizer
 
 from typing import Callable
-import numpy as np
+import torch
 
 from tqdm import trange
 
@@ -19,13 +19,13 @@ class DummyOptimizer(BaseOptimizer):
         self.max_iter = max_iter
         
     def _sample_coil_config(self) -> CoilConfig:
-        phase = np.random.uniform(low=0, high=2*np.pi, size=(8,))
-        amplitude = np.random.uniform(low=0, high=1, size=(8,))
+        phase = torch.rand((8,)) * 2 * torch.pi
+        amplitude = torch.rand((8,))
         return CoilConfig(phase=phase, amplitude=amplitude)
         
     def optimize(self, simulation: Simulation):
         best_coil_config = None
-        best_cost = -np.inf if self.direction == "maximize" else np.inf
+        best_cost = -torch.inf if self.direction == "maximize" else torch.inf
         
         pbar = trange(self.max_iter)
         for i in pbar:
