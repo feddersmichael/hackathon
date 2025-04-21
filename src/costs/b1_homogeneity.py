@@ -17,4 +17,4 @@ class B1HomogeneityCost(BaseCost):
         
         b1_field_abs = torch.abs(b1_field)
         b1_field_subject_voxels = b1_field_abs #[subject]
-        return torch.mean(b1_field_subject_voxels)/torch.std(b1_field_subject_voxels)
+        return torch.mean(b1_field_subject_voxels)/torch.std(b1_field_subject_voxels, correction=0)
