@@ -79,12 +79,16 @@ class Simulation:
             phase_shift = field[1, 1, :, :, :, :, :] + phase.view(1, 1, 1, 1, 8)
         else:
             phase_shift = field[1, 1, :, :, :, :, :] + phase.view(1, 1, 1, 1, 8)
-            phase_shift = torch.stack([torch.cos(phase_shift), torch.sin(phase_shift)], dim=0)
-            dim = field.shape
-            phase_shift = phase_shift * field[1, 0, :, :, :, :, :].unsqueeze(0)
-            phase_shift = torch.stack([phase_shift[0, 0, :, :, :, :] - phase_shift[1, 1, :, :, :, :],
-                                              phase_shift[1, 0, :, :, :, :] + phase_shift[0, 1, :, :, :, :]], dim=0)
-            field_shift = torch.sum(amplitude.view(1, 1, 1, 1, 8) * phase_shift, dim=4)
+            phase_cos = torch.cos(phase_shift) * field[1, 0, :, :, :, :, :]
+            phase_sin = torch.sin(phase_shift) * field[1, 0, :, :, :, :, :]
+            # phase_shift = torch.stack([torch.cos(phase_shift), torch.sin(phase_shift)], dim=0)
+            # phase_shift = phase_shift * field[1, 0, :, :, :, :, :].unsqueeze(0)
+            # phase_shift = torch.stack([phase_shift[0, 0, :, :, :, :] - phase_shift[1, 1, :, :, :, :],
+            #                                   phase_shift[1, 0, :, :, :, :] + phase_shift[0, 1, :, :, :, :]], dim=0)
+            phase_real = torch.sum((phase_cos[0, :, :, :, :] - phase_sin[1, :, :, :, :]) * amplitude.view(1, 1, 1, 8), dim=3)
+            phase_im = torch.sum((phase_cos[1, :, :, :, :] + phase_sin[0, :, :, :, :]) * amplitude.view(1, 1, 1, 8), dim=3)
+            field_shift = torch.stack([phase_real, phase_im], dim=0)
+            # field_shift = torch.sum(amplitude.view(1, 1, 1, 1, 8) * phase_shift, dim=4)
 
         return field_shift
 
